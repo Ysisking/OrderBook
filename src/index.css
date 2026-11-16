@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body {
+    @apply bg-slate-50 text-ink antialiased dark:bg-[#121211] dark:text-[#f0efec];
+    font-feature-settings: 'tnum' 0;
+  }
+  ::selection { @apply bg-brand-200 dark:bg-brand-800; }
+  input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .7; }
+  .dark input[type='date']::-webkit-calendar-picker-indicator { filter: invert(1); }
+}
+
+@layer components {
+  .card { @apply rounded-2xl border border-slate-200/80 bg-white shadow-card dark:border-white/10 dark:bg-surface-dark; }
+  .input {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-ink outline-none transition
+      placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15
+      disabled:cursor-not-allowed disabled:opacity-60
+      dark:border-white/15 dark:bg-[#232322] dark:text-[#f0efec] dark:placeholder:text-slate-500;
+  }
+  .label { @apply mb-1.5 block text-[13px] font-semibold text-ink-2 dark:text-[#c3c2b7]; }
+  .muted { @apply text-ink-2 dark:text-[#c3c2b7]; }
+  .faint { @apply text-ink-3 dark:text-[#8f8e88]; }
+  .num { font-variant-numeric: tabular-nums; }
+  .table-head { @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-ink-3 dark:text-[#8f8e88]; }
+  .table-cell { @apply px-4 py-3 align-middle text-sm; }
+}
+
+/* Recharts: teks & grid mengikuti tema */
+.recharts-cartesian-axis-tick-value { fill: #8a8984; font-size: 12px; }
+.recharts-cartesian-grid line { stroke: #e7e6e2; }
+.dark .recharts-cartesian-grid line { stroke: #2c2c2a; }
+.recharts-tooltip-cursor { fill: rgba(42,120,214,.06); }
+.recharts-surface:focus, .recharts-wrapper:focus, .recharts-sector:focus { outline: none; }
+
+.scrollbar-thin::-webkit-scrollbar { height: 6px; width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 9999px; }
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
