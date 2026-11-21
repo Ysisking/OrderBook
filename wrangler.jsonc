@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "orderbook",
+  "compatibility_date": "2026-11-01",
+  // Situs statis hasil `npm run build` (Vite). Semua alamat yang bukan file
+  // dikembalikan ke index.html agar rute React Router (/masuk, /pengaturan/...) jalan.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+  "observability": { "enabled": true }
+}
