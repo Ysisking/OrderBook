@@ -7,7 +7,7 @@ import { useData } from '@/context/DataContext'
 import { useUI } from '@/context/UIContext'
 import { Badge, Card, EmptyState, FullLoader, Input, PageHeader, Select, StatCard, useConfirm } from '@/components/ui'
 import { PaymentBadge, levelLabel } from '@/components/orderBits'
-import { isDone, restoreInfo, sumPrice } from '@/lib/analytics'
+import { isDone, orderDateOf, restoreInfo, sumPrice } from '@/lib/analytics'
 import { formatDate, formatDateTime, formatMonth, formatRupiah, monthKey, prettyPhone } from '@/lib/format'
 import { errorMessage } from '@/lib/supabase'
 
@@ -119,7 +119,7 @@ export default function Riwayat() {
                 <li key={o.id} onClick={(e) => !e.target.closest('button,a') && openOrder(o.id)} className="flex cursor-pointer flex-col gap-3 px-4 py-3 transition hover:bg-slate-50 sm:flex-row sm:items-center dark:hover:bg-white/[.03]">
                   <div className="min-w-0 flex-1">
                     <p className="faint num text-xs font-semibold">
-                      {o.order_no} · {levelLabel(levels, o.level)} {o.region ? `· ${o.region}` : ''}
+                      {o.order_no} · {formatDate(orderDateOf(o), 'd MMM yyyy')} · {levelLabel(levels, o.level)} {o.region ? `· ${o.region}` : ''}
                       {o.restored_count > 0 && ` · dipulihkan ${o.restored_count}×`}
                     </p>
                     <p className="font-semibold">{o.task_name}</p>

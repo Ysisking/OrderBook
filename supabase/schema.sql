@@ -328,3 +328,13 @@ create policy "avatars owner update" on storage.objects for update to authentica
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy "avatars owner delete" on storage.objects for delete to authenticated
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ---------------------------------------------------------------------
+-- Tanggal transaksi (ditambahkan 2026-11-25) — lihat supabase/migrations/2026-11-25_order_date.sql
+-- ---------------------------------------------------------------------
+alter table public.orders add column if not exists order_date date;
+update public.orders set order_date = (created_at at time zone 'Asia/Jakarta')::date where order_date is null;
+alter table public.orders
+  alter column order_date set default ((now() at time zone 'Asia/Jakarta')::date),
+  alter column order_date set not null;
+create index if not exists orders_user_order_date_idx on public.orders (user_id, order_date desc);

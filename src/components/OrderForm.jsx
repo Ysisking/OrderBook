@@ -12,6 +12,7 @@ const empty = (levels) => ({
   customer_name: '',
   phone: '',
   task_name: '',
+  order_date: dateKey(),
   deadline: dateKey(new Date(Date.now() + 3 * 86400000)),
   payment_status: 'dp',
   payment_note: '',
@@ -38,6 +39,7 @@ export default function OrderForm({ open, onClose, order, defaults }) {
             customer_name: order.customer_name ?? '',
             phone: order.phone ?? '',
             task_name: order.task_name ?? '',
+            order_date: order.order_date || dateKey(order.created_at),
             deadline: order.deadline,
             payment_status: order.payment_status,
             payment_note: order.payment_note ?? '',
@@ -90,7 +92,10 @@ export default function OrderForm({ open, onClose, order, defaults }) {
     const digits = v.phone.replace(/\D/g, '')
     if (digits.length < 8 || digits.length > 15) e.phone = 'Nomor HP 8–15 digit'
     if (!v.task_name.trim()) e.task_name = 'Wajib diisi'
+    if (!v.order_date) e.order_date = 'Pilih tanggal'
+    else if (v.order_date > dateKey()) e.order_date = 'Tidak boleh setelah hari ini'
     if (!v.deadline) e.deadline = 'Pilih tanggal'
+    else if (v.order_date && v.deadline < v.order_date) e.deadline = `Tidak boleh sebelum ${L.order_date.toLowerCase()}`
     if (v.payment_status === 'lainnya' && !v.payment_note.trim()) e.payment_note = 'Jelaskan status pembayaran'
     const price = Number(v.price)
     if (v.price === '' || Number.isNaN(price) || price < 0) e.price = 'Isi harga yang valid'
@@ -182,6 +187,9 @@ export default function OrderForm({ open, onClose, order, defaults }) {
         <Section title="Pekerjaan">
           <Field label={L.task_name} required error={errors.task_name} className="sm:col-span-2">
             <Input value={v.task_name} onChange={set('task_name')} placeholder="mis. Makalah Statistika Bab 1–3" />
+          </Field>
+          <Field label={L.order_date} required error={errors.order_date} hint="Tanggal order masuk. Ubah bila mencatat order lama.">
+            <Input type="date" value={v.order_date} onChange={set('order_date')} />
           </Field>
           <Field label={L.deadline} required error={errors.deadline}>
             <Input type="date" value={v.deadline} onChange={set('deadline')} />

@@ -15,11 +15,16 @@ export const sumPrice = (list) => list.reduce((s, o) => s + (Number(o.price) || 
 export const completedIn = (orders, period) =>
   orders.filter((o) => isDone(o) && o.completed_at && (period === 'all' || monthKey(o.completed_at) === period))
 
+/** Tanggal transaksi order (kolom order_date); fallback ke tanggal dibuat untuk data lama. */
+export const orderDateOf = (o) => o.order_date || dateKey(o.created_at)
+/** Urutan kronologis order: tanggal transaksi, lalu waktu dibuat. */
+export const orderTimeKey = (o) => `${orderDateOf(o)}|${o.created_at}`
+
 export const createdIn = (orders, period) =>
-  orders.filter((o) => period === 'all' || monthKey(o.created_at) === period)
+  orders.filter((o) => period === 'all' || orderDateOf(o).slice(0, 7) === period)
 
 export const completedOn = (orders, day) => orders.filter((o) => isDone(o) && o.completed_at && dateKey(o.completed_at) === day)
-export const createdOn = (orders, day) => orders.filter((o) => dateKey(o.created_at) === day)
+export const createdOn = (orders, day) => orders.filter((o) => orderDateOf(o) === day)
 
 export function deadlineState(order, warnDays = 3) {
   if (isDone(order)) return 'done'
@@ -35,7 +40,7 @@ export const customerKey = (row) => normalizePhone(row.phone) || `nama:${(row.cu
 /** Daftar pelanggan unik dari order (dikenali dari nomor HP yang dinormalisasi). */
 export function customersFromOrders(orders) {
   const map = new Map()
-  const sorted = [...orders].sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
+  const sorted = [...orders].sort((a, b) => orderTimeKey(a).localeCompare(orderTimeKey(b)))
   for (const o of sorted) {
     const key = customerKey(o)
     if (!key || key === 'nama:') continue
@@ -47,7 +52,7 @@ export function customersFromOrders(orders) {
       c.completed += 1
       c.spent += Number(o.price) || 0
     }
-    c.lastOrder = o.created_at
+    c.lastOrder = orderDateOf(o)
     map.set(key, c)
   }
   return [...map.values()]

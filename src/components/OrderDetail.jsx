@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useData } from '@/context/DataContext'
 import { useUI } from '@/context/UIContext'
 import { ORDER_STATUSES } from '@/lib/constants'
+import { orderDateOf } from '@/lib/analytics'
 import { formatDate, formatDateTime, formatRupiah, normalizePhone, prettyPhone, waLink } from '@/lib/format'
 
 function Row({ label, children }) {
@@ -113,6 +114,7 @@ export default function OrderDetail() {
         )}
 
         <dl className="mt-5 divide-y hairline border-y">
+          <Row label={L.order_date}>{formatDate(orderDateOf(o), 'EEEE, d MMM yyyy')}</Row>
           <Row label={L.deadline}>
             <span className="font-medium">{formatDate(o.deadline, 'EEEE, d MMM yyyy')}</span>
             <div>
@@ -124,7 +126,7 @@ export default function OrderDetail() {
             <PaymentBadge order={o} />
           </Row>
           <Row label={L.region}>{o.region || '—'}</Row>
-          <Row label="Dibuat">{formatDateTime(o.created_at)}</Row>
+          <Row label="Dicatat">{formatDateTime(o.created_at)}</Row>
           {o.completed_at && <Row label="Selesai">{formatDateTime(o.completed_at)}</Row>}
           {o.restored_count > 0 && <Row label="Dipulihkan">{o.restored_count}× dari Riwayat</Row>}
         </dl>

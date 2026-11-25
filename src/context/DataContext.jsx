@@ -1,10 +1,17 @@
+import { toast } from 'sonner'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { orderTimeKey } from '@/lib/analytics'
 import { supabase, fetchAll } from '@/lib/supabase'
 import { useAuth } from './AuthContext'
 
 const DataContext = createContext(null)
 
-const sortOrders = (list) => [...list].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+const sortOrders = (list) => [...list].sort((a, b) => orderTimeKey(b).localeCompare(orderTimeKey(a)))
+
+// Kolom order_date ditambahkan belakangan (supabase/migrations/2026-11-25_order_date.sql).
+// Bila belum dijalankan di database, simpan tanpa kolom itu supaya aplikasi tetap jalan.
+const missingOrderDate = (error) => /order_date/.test(error?.message || '') && ['PGRST204', '42703'].includes(error?.code)
+let warnedOrderDate = false
 
 export function DataProvider({ children }) {
   const { user } = useAuth()
@@ -40,10 +47,16 @@ export function DataProvider({ children }) {
 
   // ---------- Orders ----------
   const saveOrder = useCallback(async (values, id) => {
-    const q = id
-      ? supabase.from('orders').update(values).eq('id', id)
-      : supabase.from('orders').insert(values)
-    const { data, error } = await q.select().single()
+    const send = (v) => (id ? supabase.from('orders').update(v).eq('id', id) : supabase.from('orders').insert(v)).select().single()
+    let { data, error } = await send(values)
+    if (error && 'order_date' in values && missingOrderDate(error)) {
+      const { order_date, ...rest } = values // eslint-disable-line no-unused-vars
+      ;({ data, error } = await send(rest))
+      if (!error && !warnedOrderDate) {
+        warnedOrderDate = true
+        toast.warning('Tanggal transaksi belum tersimpan', { description: 'Kolom order_date belum ada di database. Jalankan SQL migrasi di Supabase → SQL Editor.' })
+      }
+    }
     if (error) throw error
     setOrders((list) => sortOrders(id ? list.map((o) => (o.id === id ? data : o)) : [data, ...list]))
     return data

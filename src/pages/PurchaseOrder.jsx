@@ -21,12 +21,12 @@ import { useUI } from '@/context/UIContext'
 import { Button, Card, Checkbox, EmptyState, FullLoader, Kbd, Menu, PageHeader, Select, TONE_DOTS, Tabs, clsx } from '@/components/ui'
 import { DeadlineText, PaymentBadge, StatusMenu, levelLabel, nextStatus, statusOf, useOrderActions } from '@/components/orderBits'
 import { ORDER_STATUSES, ACTIVE_STATUSES } from '@/lib/constants'
-import { deadlineState, isActive, sumPrice } from '@/lib/analytics'
+import { deadlineState, isActive, orderDateOf, orderTimeKey, sumPrice } from '@/lib/analytics'
 import { formatDate, formatRupiah, prettyPhone, waLink } from '@/lib/format'
 
 const SORTS = [
   { value: 'deadline', label: 'Urut: deadline terdekat' },
-  { value: 'newest', label: 'Urut: terbaru dibuat' },
+  { value: 'newest', label: 'Urut: transaksi terbaru' },
   { value: 'price', label: 'Urut: harga tertinggi' },
 ]
 const VIEW_KEY = 'ob-po-view'
@@ -74,7 +74,7 @@ export default function PurchaseOrder() {
           (digits.length >= 3 && o.phone_norm?.includes(digits)),
       )
       .sort((a, b) =>
-        sort === 'deadline' ? a.deadline.localeCompare(b.deadline) : sort === 'price' ? Number(b.price) - Number(a.price) : b.created_at.localeCompare(a.created_at),
+        sort === 'deadline' ? a.deadline.localeCompare(b.deadline) : sort === 'price' ? Number(b.price) - Number(a.price) : orderTimeKey(b).localeCompare(orderTimeKey(a)),
       )
   }, [active, level, q, sort])
 
@@ -241,7 +241,7 @@ function TableView({ list, active, filtered, selected, setSelected }) {
               <th className="table-head w-10 pl-4 pr-0">
                 <Checkbox checked={all} indeterminate={some} onChange={(on) => setSelected(on ? new Set(list.map((o) => o.id)) : new Set())} label="Pilih semua" />
               </th>
-              <th className="table-head w-[88px]">No.</th>
+              <th className="table-head w-[96px]">No. · Tgl</th>
               <th className="table-head">{L.task_name}</th>
               <th className="table-head w-[150px]">{L.deadline}</th>
               <th className="table-head w-[100px]">{L.level}</th>
@@ -263,7 +263,10 @@ function TableView({ list, active, filtered, selected, setSelected }) {
                   <td className="table-cell w-10 pl-4 pr-0">
                     <Checkbox checked={sel} onChange={(on) => toggle(o.id, on)} label={`Pilih ${o.order_no}`} />
                   </td>
-                  <td className="table-cell num whitespace-nowrap text-[13px] font-semibold text-ink-2 dark:text-[#b9b8b1]">{o.order_no}</td>
+                  <td className="table-cell num whitespace-nowrap" title={`${L.order_date}: ${formatDate(orderDateOf(o), 'd MMMM yyyy')}`}>
+                    <p className="text-[13px] font-semibold text-ink-2 dark:text-[#b9b8b1]">{o.order_no}</p>
+                    <p className="faint text-xs">{formatDate(orderDateOf(o), 'd MMM yy')}</p>
+                  </td>
                   <td className="table-cell max-w-0">
                     <p className="truncate font-semibold" title={o.task_name}>
                       {o.task_name}
@@ -313,7 +316,7 @@ function TableView({ list, active, filtered, selected, setSelected }) {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="faint num text-[11px] font-semibold">
-                  {o.order_no} · {levelLabel(levels, o.level)}
+                  {o.order_no} · {formatDate(orderDateOf(o), 'd MMM')} · {levelLabel(levels, o.level)}
                 </p>
                 <p className="font-semibold leading-snug">{o.task_name}</p>
                 <p className="faint truncate text-xs">
@@ -483,7 +486,9 @@ function Ticket({ o, dragging, onDragStart, onDragEnd }) {
         <h3 className="mt-2 line-clamp-2 text-[13px] font-bold leading-snug">{o.task_name}</h3>
         <p className="faint mt-0.5 truncate text-xs">{o.customer_name || prettyPhone(o.phone)}</p>
         <div className="mt-2.5 flex items-center justify-between gap-2">
-          <span className="text-[11px] font-semibold text-ink-2 dark:text-[#b9b8b1]">{levelLabel(levels, o.level)}</span>
+          <span className="text-[11px] font-semibold text-ink-2 dark:text-[#b9b8b1]">
+            {levelLabel(levels, o.level)} <span className="faint font-normal">· {formatDate(orderDateOf(o), 'd MMM')}</span>
+          </span>
           <span className="num text-[13px] font-bold">{formatRupiah(o.price)}</span>
         </div>
         <div className="mt-2 flex items-center justify-between gap-2">
