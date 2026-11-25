@@ -51,6 +51,22 @@ export function DataProvider({ children }) {
 
   const setOrderStatus = useCallback((id, status) => saveOrder({ status }, id), [saveOrder])
 
+  // Aksi massal (dipakai pilihan banyak baris di Purchase Order)
+  const setStatusMany = useCallback(async (ids, status) => {
+    const { data, error } = await supabase.from('orders').update({ status }).in('id', ids).select()
+    if (error) throw error
+    const byId = new Map(data.map((d) => [d.id, d]))
+    setOrders((list) => sortOrders(list.map((o) => byId.get(o.id) || o)))
+    return data
+  }, [])
+
+  const deleteMany = useCallback(async (ids) => {
+    const { error } = await supabase.from('orders').delete().in('id', ids)
+    if (error) throw error
+    const set = new Set(ids)
+    setOrders((list) => list.filter((o) => !set.has(o.id)))
+  }, [])
+
   const deleteOrder = useCallback(async (id) => {
     const { error } = await supabase.from('orders').delete().eq('id', id)
     if (error) throw error
@@ -91,12 +107,14 @@ export function DataProvider({ children }) {
       saveOrder,
       setOrderStatus,
       deleteOrder,
+      setStatusMany,
+      deleteMany,
       saveReview: reviewsCrud.save,
       deleteReview: reviewsCrud.remove,
       saveTestimonial: testimonialsCrud.save,
       deleteTestimonial: testimonialsCrud.remove,
     }),
-    [orders, reviews, testimonials, loading, error, reload, saveOrder, setOrderStatus, deleteOrder, reviewsCrud, testimonialsCrud],
+    [orders, reviews, testimonials, loading, error, reload, saveOrder, setOrderStatus, deleteOrder, setStatusMany, deleteMany, reviewsCrud, testimonialsCrud],
   )
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

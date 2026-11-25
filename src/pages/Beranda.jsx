@@ -4,10 +4,10 @@ import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer,
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, BellRing, CheckCircle2, ClipboardList, Loader, Plus, Star, TrendingUp, Wallet } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useData } from '@/context/DataContext'
-import { Badge, Button, Card, CardHeader, EmptyState, FullLoader, StatCard, Tabs } from '@/components/ui'
+import { Badge, Button, Card, CardHeader, EmptyState, FullLoader, StatCard, Tabs , PageHeader } from '@/components/ui'
 import { DeadlineBadge, StatusBadge } from '@/components/orderBits'
 import { ChartTooltip, Legend, useSeries } from '@/components/charts'
-import OrderForm from '@/components/OrderForm'
+import { useUI } from '@/context/UIContext'
 import { ORDER_STATUSES, ACTIVE_STATUSES } from '@/lib/constants'
 import {
   completedIn,
@@ -37,8 +37,10 @@ function Trend({ value }) {
 }
 
 function OrderLine({ o, warn, right }) {
+  const { openOrder } = useUI()
   return (
-    <li className="flex items-center gap-3 py-2.5">
+    <li>
+      <button onClick={() => openOrder(o.id)} className="-mx-2 flex w-[calc(100%+16px)] items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-slate-50 dark:hover:bg-white/5">
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{o.task_name}</p>
         <p className="faint truncate text-xs">
@@ -46,6 +48,7 @@ function OrderLine({ o, warn, right }) {
         </p>
       </div>
       {right ?? <DeadlineBadge order={o} warnDays={warn} />}
+      </button>
     </li>
   )
 }
@@ -55,7 +58,7 @@ export default function Beranda() {
   const { orders, testimonials, loading } = useData()
   const { colors } = useSeries()
   const [tab, setTab] = useState('deadline')
-  const [formOpen, setFormOpen] = useState(false)
+  const { newOrder } = useUI()
   const warn = settings.deadline_warning_days
 
   const m = useMemo(() => {
@@ -109,22 +112,20 @@ export default function Beranda() {
 
   return (
     <>
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="muted text-sm">{format(new Date(), 'EEEE, d MMMM yyyy', { locale: localeId })}</p>
-          <h1 className="text-2xl font-extrabold tracking-tight">
-            {greet}, {profile?.business_name || `@${profile?.username}`} 👋
-          </h1>
-        </div>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="h-4 w-4" /> {L.menu_po} Baru
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow={format(new Date(), 'EEEE, d MMMM yyyy', { locale: localeId })}
+        title={`${greet}, ${profile?.business_name || `@${profile?.username}`}`}
+        action={
+          <Button onClick={() => newOrder()} className="hidden sm:inline-flex">
+            <Plus className="h-4 w-4" /> {L.order} baru
+          </Button>
+        }
+      />
 
       {m.overdue > 0 && (
         <Link
           to="/purchase-order"
-          className="mb-5 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
+          className="mb-5 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-[13px] text-red-800 transition hover:bg-red-100/70 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
         >
           <BellRing className="h-5 w-5 shrink-0" />
           <span>
@@ -257,13 +258,13 @@ export default function Beranda() {
             }
           />
           <div className="px-5 pb-4 pt-3">
-            <Tabs tabs={notifTabs} value={tab} onChange={setTab} />
+            <Tabs variant="underline" tabs={notifTabs} value={tab} onChange={setTab} />
             {notifList.length === 0 ? (
               <EmptyState
                 title={tab === 'deadline' ? 'Aman, tidak ada yang mepet deadline' : tab === 'progress' ? 'Tidak ada order on progress' : 'Belum ada order selesai 7 hari terakhir'}
               />
             ) : (
-              <ul className="mt-2 divide-y divide-slate-100 dark:divide-white/5">
+              <ul className="mt-1 divide-y divide-line dark:divide-line-dark">
                 {notifList.slice(0, 8).map((o) => (
                   <OrderLine
                     key={o.id}
@@ -305,7 +306,7 @@ export default function Beranda() {
             ) : (
               <ul className="space-y-3">
                 {homeReviews.map((t) => (
-                  <li key={t.id} className="rounded-xl bg-slate-50 p-3 dark:bg-white/5">
+                  <li key={t.id} className="rounded-lg border hairline p-3">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-sm font-bold">{t.customer_name}</p>
                       <span className="flex shrink-0 items-center gap-0.5 text-amber-500" aria-label={`${t.rating} dari 5`}>
@@ -324,7 +325,6 @@ export default function Beranda() {
         </Card>
       </div>
 
-      <OrderForm open={formOpen} onClose={() => setFormOpen(false)} />
     </>
   )
 }

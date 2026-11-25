@@ -2,40 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Prinsip tampilan OrderBook
+  - Latar kanvas netral, panel putih dengan garis rambut (bukan bayangan tebal).
+  - Satu warna aksen (biru) untuk aksi utama & status aktif; merah/kuning/hijau hanya untuk status.
+  - Angka selalu tabular. Kepadatan seperti aplikasi kerja (tabel 44px per baris).
+*/
 @layer base {
   html { -webkit-tap-highlight-color: transparent; }
   body {
-    @apply bg-slate-50 text-ink antialiased dark:bg-[#121211] dark:text-[#f0efec];
-    font-feature-settings: 'tnum' 0;
+    @apply bg-canvas text-ink antialiased dark:bg-canvas-dark dark:text-[#edece8];
   }
   ::selection { @apply bg-brand-200 dark:bg-brand-800; }
   input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .7; }
   .dark input[type='date']::-webkit-calendar-picker-indicator { filter: invert(1); }
+  :focus-visible { outline: 2px solid theme('colors.brand.500'); outline-offset: 2px; }
 }
 
 @layer components {
-  .card { @apply rounded-2xl border border-slate-200/80 bg-white shadow-card dark:border-white/10 dark:bg-surface-dark; }
+  .card { @apply rounded-xl border border-line bg-white shadow-card dark:border-line-dark dark:bg-surface-dark; }
   .input {
-    @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-ink outline-none transition
-      placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15
+    @apply h-9 w-full rounded-lg border border-line-strong bg-white px-3 text-sm text-ink outline-none transition
+      placeholder:text-ink-3 focus:border-brand-500 focus:ring-[3px] focus:ring-brand-500/15
       disabled:cursor-not-allowed disabled:opacity-60
-      dark:border-white/15 dark:bg-[#232322] dark:text-[#f0efec] dark:placeholder:text-slate-500;
+      dark:border-white/10 dark:bg-surface-raised dark:text-[#edece8] dark:placeholder:text-[#6f6e69];
   }
+  textarea.input { @apply h-auto py-2; }
+  select.input { @apply cursor-pointer; }
   .label { @apply mb-1.5 block text-[13px] font-semibold text-ink-2 dark:text-[#c3c2b7]; }
-  .muted { @apply text-ink-2 dark:text-[#c3c2b7]; }
-  .faint { @apply text-ink-3 dark:text-[#8f8e88]; }
+  .muted { @apply text-ink-2 dark:text-[#b9b8b1]; }
+  .faint { @apply text-ink-3 dark:text-[#85847e]; }
   .num { font-variant-numeric: tabular-nums; }
-  .table-head { @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-ink-3 dark:text-[#8f8e88]; }
-  .table-cell { @apply px-4 py-3 align-middle text-sm; }
+  .hairline { @apply border-line dark:border-line-dark; }
+  .table-head { @apply h-9 whitespace-nowrap px-3 text-left text-[11px] font-semibold uppercase tracking-wide text-ink-3 dark:text-[#85847e]; }
+  .table-cell { @apply px-3 py-2.5 align-middle text-sm; }
+  .section-label { @apply px-2.5 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-ink-3 dark:text-[#6f6e69]; }
+  .kbd {
+    @apply inline-flex h-5 min-w-[20px] items-center justify-center rounded border border-line-strong bg-white px-1
+      font-sans text-[10px] font-semibold text-ink-3 dark:border-white/15 dark:bg-white/5 dark:text-[#9a9993];
+  }
+  /* Tiket pesanan (mode papan): kertas dengan tepi bawah bergerigi seperti struk dapur. */
+  .ticket {
+    @apply relative rounded-t-lg bg-paper shadow-ticket dark:bg-paper-dark;
+    --tooth: 7px;
+    -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / calc(var(--tooth) * 2) 100%;
+    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / calc(var(--tooth) * 2) 100%;
+    padding-bottom: calc(var(--tooth) + 10px);
+  }
 }
 
 /* Recharts: teks & grid mengikuti tema */
 .recharts-cartesian-axis-tick-value { fill: #8a8984; font-size: 12px; }
-.recharts-cartesian-grid line { stroke: #e7e6e2; }
-.dark .recharts-cartesian-grid line { stroke: #2c2c2a; }
+.recharts-cartesian-grid line { stroke: #ecebe7; }
+.dark .recharts-cartesian-grid line { stroke: #2a2a28; }
 .recharts-tooltip-cursor { fill: rgba(42,120,214,.06); }
 .recharts-surface:focus, .recharts-wrapper:focus, .recharts-sector:focus { outline: none; }
 
 .scrollbar-thin::-webkit-scrollbar { height: 6px; width: 6px; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 9999px; }
+.dark .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); }
 .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }

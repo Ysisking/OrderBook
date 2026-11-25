@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { History, Lock, RotateCcw, Search, Trash2, Unlock } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useData } from '@/context/DataContext'
+import { useUI } from '@/context/UIContext'
 import { Badge, Card, EmptyState, FullLoader, Input, PageHeader, Select, StatCard, useConfirm } from '@/components/ui'
 import { PaymentBadge, levelLabel } from '@/components/orderBits'
 import { isDone, restoreInfo, sumPrice } from '@/lib/analytics'
@@ -11,6 +12,7 @@ import { formatDate, formatDateTime, formatMonth, formatRupiah, monthKey, pretty
 import { errorMessage } from '@/lib/supabase'
 
 export default function Riwayat() {
+  const { openOrder } = useUI()
   const { labels: L, levels, settings } = useAuth()
   const { orders, loading, setOrderStatus, deleteOrder } = useData()
   const confirm = useConfirm()
@@ -110,17 +112,17 @@ export default function Riwayat() {
         {list.length === 0 ? (
           <EmptyState icon={History} title="Riwayat masih kosong" description={`Order yang diberi status "Sudah Selesai" di ${L.menu_po} akan muncul di sini.`} />
         ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-white/5">
+          <ul className="divide-y divide-line dark:divide-line-dark">
             {list.slice(0, limit).map((o) => {
               const info = restoreInfo(o, settings)
               return (
-                <li key={o.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                <li key={o.id} onClick={(e) => !e.target.closest('button,a') && openOrder(o.id)} className="flex cursor-pointer flex-col gap-3 px-4 py-3 transition hover:bg-slate-50 sm:flex-row sm:items-center dark:hover:bg-white/[.03]">
                   <div className="min-w-0 flex-1">
                     <p className="faint num text-xs font-semibold">
                       {o.order_no} · {levelLabel(levels, o.level)} {o.region ? `· ${o.region}` : ''}
                       {o.restored_count > 0 && ` · dipulihkan ${o.restored_count}×`}
                     </p>
-                    <p className="font-bold">{o.task_name}</p>
+                    <p className="font-semibold">{o.task_name}</p>
                     <p className="faint text-xs">
                       {o.customer_name ? `${o.customer_name} · ` : ''}
                       {prettyPhone(o.phone)} · deadline {formatDate(o.deadline)}

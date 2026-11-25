@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { DataProvider } from '@/context/DataContext'
+import { UIProvider } from '@/context/UIContext'
+import { MoneyOutProvider } from '@/context/MoneyOutContext'
 import { ConfirmProvider, FullLoader } from '@/components/ui'
 import { supabaseConfigured } from '@/lib/supabase'
 import { useIsDark } from '@/components/charts'
@@ -25,7 +27,11 @@ function Protected() {
   if (!session) return <Navigate to="/masuk" replace />
   return (
     <DataProvider>
-      <Layout />
+      <MoneyOutProvider>
+        <UIProvider>
+          <Layout />
+        </UIProvider>
+      </MoneyOutProvider>
     </DataProvider>
   )
 }
